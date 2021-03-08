@@ -6,7 +6,7 @@ using UnityEngine;
 /// プレイヤーの動きを制御する。
 /// 接地判定の形は Box でやっている。
 /// </summary>
-[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
 public class PlayerMovementController2D : MonoBehaviour
 {
     /// <summary>地上で操作された時の動く速さ</summary>
@@ -21,15 +21,17 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] Vector2 m_groundOffset = Vector2.down;
     /// <summary>接地判定をする Box のサイズ</summary>
     [SerializeField] Vector2 m_groundTriggerSize = Vector2.one;
-    Rigidbody2D m_rb = default;
     /// <summary>水平方向の入力</summary>
     float m_h;
     /// <summary>垂直方向の入力</summary>
     float m_v;
+    Rigidbody2D m_rb = default;
+    SpriteRenderer m_sprite = default;
 
     void Start()
     {
         m_rb = GetComponent<Rigidbody2D>();
+        m_sprite = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -37,6 +39,11 @@ public class PlayerMovementController2D : MonoBehaviour
         m_h = Input.GetAxisRaw("Horizontal");
         m_v = Input.GetAxisRaw("Vertical");
 
+        // スプライトの向きを制御する
+        if (m_h > 0) m_sprite.flipX = false;
+        else if (m_h < 0) m_sprite.flipX = true;
+
+        // 移動・ジャンプを制御する
         Vector3 velocity = m_rb.velocity;
 
         if (IsGrounded())
