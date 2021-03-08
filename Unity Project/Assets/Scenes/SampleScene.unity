@@ -1266,6 +1266,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_runSpeed: 20
+  m_movePowerInTheAir: 40
   m_jumpPower: 12
   m_groundLayer:
     serializedVersion: 2

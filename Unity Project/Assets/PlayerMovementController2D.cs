@@ -54,19 +54,10 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (m_h > 0)
+        // ‹ó’†§Œäˆ—
+        if ((m_h > 0 && m_rb.velocity.x < m_runSpeed) || (m_h < 0 && -1 * m_runSpeed < m_rb.velocity.x))
         {
-            if (m_rb.velocity.x < m_runSpeed)
-            {
-                m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
-            }
-        }
-        else if (m_h < 0)
-        {
-            if (m_rb.velocity.x > -1 * m_runSpeed)
-            {
-                m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
-            }
+            m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
         }
     }
 
