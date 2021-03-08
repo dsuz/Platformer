@@ -9,14 +9,23 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovementController2D : MonoBehaviour
 {
+    /// <summary>地上で操作された時の動く速さ</summary>
     [SerializeField] float m_runSpeed = 7f;
+    /// <summary>空中で操作された時の動く力</summary>
+    [SerializeField] float m_movePowerInTheAir = 5f;
+    /// <summary>ジャンプ力</summary>
     [SerializeField] float m_jumpPower = 5f;
+    /// <summary>「地面」と判定するレイヤー</summary>
     [SerializeField] LayerMask m_groundLayer;
     /// <summary>Pivot から接地判定の中心までのオフセット</summary>
     [SerializeField] Vector2 m_groundOffset = Vector2.down;
     /// <summary>接地判定をする Box のサイズ</summary>
     [SerializeField] Vector2 m_groundTriggerSize = Vector2.one;
     Rigidbody2D m_rb = default;
+    /// <summary>水平方向の入力</summary>
+    float m_h;
+    /// <summary>垂直方向の入力</summary>
+    float m_v;
 
     void Start()
     {
@@ -25,18 +34,40 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void Update()
     {
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+        m_h = Input.GetAxisRaw("Horizontal");
+        m_v = Input.GetAxisRaw("Vertical");
 
-        Vector2 velocity = Vector2.right * h * m_runSpeed;
-        velocity.y = m_rb.velocity.y;
+        Vector3 velocity = m_rb.velocity;
 
-        if (Input.GetButtonDown("Jump") && IsGrounded())
+        if (IsGrounded())
         {
-            velocity.y = m_jumpPower;
+            velocity.x = m_h * m_runSpeed; ;
+
+            if (Input.GetButtonDown("Jump"))
+            {
+                velocity.y = m_jumpPower;
+            }
         }
 
         m_rb.velocity = velocity;
+    }
+
+    void FixedUpdate()
+    {
+        if (m_h > 0)
+        {
+            if (m_rb.velocity.x < m_runSpeed)
+            {
+                m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
+            }
+        }
+        else if (m_h < 0)
+        {
+            if (m_rb.velocity.x > -1 * m_runSpeed)
+            {
+                m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
+            }
+        }
     }
 
     /// <summary>
