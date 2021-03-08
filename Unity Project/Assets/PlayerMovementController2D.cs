@@ -13,6 +13,10 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] float m_runSpeed = 7f;
     /// <summary>空中で操作された時の動く力</summary>
     [SerializeField] float m_movePowerInTheAir = 5f;
+    /// <summary>ダッシュ時のスピード</summary>
+    [SerializeField] float m_dashSpeed = 15f;
+    /// <summary>ダッシュする時間（単位：秒）</summary>
+    [SerializeField] float m_dashTime = 0.3f;
     /// <summary>ジャンプ力</summary>
     [SerializeField] float m_jumpPower = 5f;
     /// <summary>「地面」と判定するレイヤー</summary>
@@ -27,6 +31,7 @@ public class PlayerMovementController2D : MonoBehaviour
     float m_v;
     Rigidbody2D m_rb = default;
     SpriteRenderer m_sprite = default;
+    float m_dashTimer;
 
     void Start()
     {
@@ -36,6 +41,8 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void Update()
     {
+        if (m_dashTimer > 0) return;    // ダッシュ中は入力を受け付けない
+
         m_h = Input.GetAxisRaw("Horizontal");
         m_v = Input.GetAxisRaw("Vertical");
 
@@ -57,6 +64,11 @@ public class PlayerMovementController2D : MonoBehaviour
         }
 
         m_rb.velocity = velocity;
+
+        if (Input.GetButtonDown("Dash"))
+        {
+            StartCoroutine(Dash());
+        }
     }
 
     void FixedUpdate()
@@ -66,6 +78,29 @@ public class PlayerMovementController2D : MonoBehaviour
         {
             m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
         }
+    }
+
+    /// <summary>
+    /// ダッシュ処理
+    /// ダッシュ中は重力の影響を受けなくなる。
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator Dash()
+    {
+        m_dashTimer = m_dashTime;
+        float savedGravityScale = m_rb.gravityScale;
+        m_rb.gravityScale = 0f;
+        Vector2 velocity = m_sprite.flipX ? -1 * m_dashSpeed * Vector2.right : m_dashSpeed * Vector2.right;
+
+        while (m_dashTimer > 0)
+        {
+            m_dashTimer -= Time.deltaTime;
+            m_rb.velocity = velocity;
+            yield return new WaitForEndOfFrame();            
+        }
+
+        m_rb.velocity = Vector2.zero;
+        m_rb.gravityScale = savedGravityScale;
     }
 
     /// <summary>
