@@ -1,33 +1,33 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ƒvƒŒƒCƒ„[‚Ì“®‚«‚ğ§Œä‚·‚éB
-/// Ú’n”»’è‚ÌŒ`‚Í Box ‚Å‚â‚Á‚Ä‚¢‚éB
+/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‹•ãã‚’åˆ¶å¾¡ã™ã‚‹ã€‚
+/// æ¥åœ°åˆ¤å®šã®å½¢ã¯ Box ã§ã‚„ã£ã¦ã„ã‚‹ã€‚
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
 public class PlayerMovementController2D : MonoBehaviour
 {
-    /// <summary>’nã‚Å‘€ì‚³‚ê‚½‚Ì“®‚­‘¬‚³</summary>
+    /// <summary>åœ°ä¸Šã§æ“ä½œã•ã‚ŒãŸæ™‚ã®å‹•ãé€Ÿã•</summary>
     [SerializeField] float m_runSpeed = 7f;
-    /// <summary>‹ó’†‚Å‘€ì‚³‚ê‚½‚Ì“®‚­—Í</summary>
+    /// <summary>ç©ºä¸­ã§æ“ä½œã•ã‚ŒãŸæ™‚ã®å‹•ãåŠ›</summary>
     [SerializeField] float m_movePowerInTheAir = 5f;
-    /// <summary>ƒ_ƒbƒVƒ…‚ÌƒXƒs[ƒh</summary>
+    /// <summary>ãƒ€ãƒƒã‚·ãƒ¥æ™‚ã®ã‚¹ãƒ”ãƒ¼ãƒ‰</summary>
     [SerializeField] float m_dashSpeed = 15f;
-    /// <summary>ƒ_ƒbƒVƒ…‚·‚éŠÔi’PˆÊF•bj</summary>
+    /// <summary>ãƒ€ãƒƒã‚·ãƒ¥ã™ã‚‹æ™‚é–“ï¼ˆå˜ä½ï¼šç§’ï¼‰</summary>
     [SerializeField] float m_dashTime = 0.3f;
-    /// <summary>ƒWƒƒƒ“ƒv—Í</summary>
+    /// <summary>ã‚¸ãƒ£ãƒ³ãƒ—åŠ›</summary>
     [SerializeField] float m_jumpPower = 5f;
-    /// <summary>u’n–Êv‚Æ”»’è‚·‚éƒŒƒCƒ„[</summary>
+    /// <summary>ã€Œåœ°é¢ã€ã¨åˆ¤å®šã™ã‚‹ãƒ¬ã‚¤ãƒ¤ãƒ¼</summary>
     [SerializeField] LayerMask m_groundLayer;
-    /// <summary>Pivot ‚©‚çÚ’n”»’è‚Ì’†S‚Ü‚Å‚ÌƒIƒtƒZƒbƒg</summary>
+    /// <summary>Pivot ã‹ã‚‰æ¥åœ°åˆ¤å®šã®ä¸­å¿ƒã¾ã§ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ</summary>
     [SerializeField] Vector2 m_groundOffset = Vector2.down;
-    /// <summary>Ú’n”»’è‚ğ‚·‚é Box ‚ÌƒTƒCƒY</summary>
+    /// <summary>æ¥åœ°åˆ¤å®šã‚’ã™ã‚‹ Box ã®ã‚µã‚¤ã‚º</summary>
     [SerializeField] Vector2 m_groundTriggerSize = Vector2.one;
-    /// <summary>…•½•ûŒü‚Ì“ü—Í</summary>
+    /// <summary>æ°´å¹³æ–¹å‘ã®å…¥åŠ›</summary>
     float m_h;
-    /// <summary>‚’¼•ûŒü‚Ì“ü—Í</summary>
+    /// <summary>å‚ç›´æ–¹å‘ã®å…¥åŠ›</summary>
     float m_v;
     Rigidbody2D m_rb = default;
     SpriteRenderer m_sprite = default;
@@ -41,16 +41,16 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void Update()
     {
-        if (m_dashTimer > 0) return;    // ƒ_ƒbƒVƒ…’†‚Í“ü—Í‚ğó‚¯•t‚¯‚È‚¢
+        if (m_dashTimer > 0) return;    // ãƒ€ãƒƒã‚·ãƒ¥ä¸­ã¯å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ãªã„
 
         m_h = Input.GetAxisRaw("Horizontal");
         m_v = Input.GetAxisRaw("Vertical");
 
-        // ƒXƒvƒ‰ƒCƒg‚ÌŒü‚«‚ğ§Œä‚·‚é
+        // ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã®å‘ãã‚’åˆ¶å¾¡ã™ã‚‹
         if (m_h > 0) m_sprite.flipX = false;
         else if (m_h < 0) m_sprite.flipX = true;
 
-        // ˆÚ“®EƒWƒƒƒ“ƒv‚ğ§Œä‚·‚é
+        // ç§»å‹•ãƒ»ã‚¸ãƒ£ãƒ³ãƒ—ã‚’åˆ¶å¾¡ã™ã‚‹
         Vector3 velocity = m_rb.velocity;
 
         if (IsGrounded())
@@ -73,7 +73,7 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void FixedUpdate()
     {
-        // ‹ó’†§Œäˆ—
+        // ç©ºä¸­åˆ¶å¾¡å‡¦ç†
         if ((m_h > 0 && m_rb.velocity.x < m_runSpeed) || (m_h < 0 && -1 * m_runSpeed < m_rb.velocity.x))
         {
             m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
@@ -81,8 +81,8 @@ public class PlayerMovementController2D : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒ_ƒbƒVƒ…ˆ—
-    /// ƒ_ƒbƒVƒ…’†‚Íd—Í‚Ì‰e‹¿‚ğó‚¯‚È‚­‚È‚éB
+    /// ãƒ€ãƒƒã‚·ãƒ¥å‡¦ç†
+    /// ãƒ€ãƒƒã‚·ãƒ¥ä¸­ã¯é‡åŠ›ã®å½±éŸ¿ã‚’å—ã‘ãªããªã‚‹ã€‚
     /// </summary>
     /// <returns></returns>
     IEnumerator Dash()
@@ -104,7 +104,7 @@ public class PlayerMovementController2D : MonoBehaviour
     }
 
     /// <summary>
-    /// Ú’n”»’è
+    /// æ¥åœ°åˆ¤å®š
     /// </summary>
     /// <returns></returns>
     bool IsGrounded()
@@ -114,7 +114,7 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // Ú’n”»’è‚·‚éƒGƒŠƒA‚ğ•\¦‚·‚é
+        // æ¥åœ°åˆ¤å®šã™ã‚‹ã‚¨ãƒªã‚¢ã‚’è¡¨ç¤ºã™ã‚‹
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(this.transform.position + (Vector3)m_groundOffset, m_groundTriggerSize);
     }
