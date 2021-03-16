@@ -1270,11 +1270,13 @@ MonoBehaviour:
   m_dashSpeed: 40
   m_dashTime: 0.1
   m_jumpPower: 12
+  m_jumpPowerMidAir: 10
   m_groundLayer:
     serializedVersion: 2
     m_Bits: 64
   m_groundOffset: {x: 0, y: -0.5}
   m_groundTriggerSize: {x: 0.5, y: 0.2}
+  m_maxMidAirJumpCount: 1
 --- !u!1 &2136627207
 GameObject:
   m_ObjectHideFlags: 0

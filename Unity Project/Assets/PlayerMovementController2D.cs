@@ -19,19 +19,26 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] float m_dashTime = 0.3f;
     /// <summary>ジャンプ力</summary>
     [SerializeField] float m_jumpPower = 5f;
+    /// <summary>空中でのジャンプ力</summary>
+    [SerializeField] float m_jumpPowerMidAir = 4f;
     /// <summary>「地面」と判定するレイヤー</summary>
     [SerializeField] LayerMask m_groundLayer;
     /// <summary>Pivot から接地判定の中心までのオフセット</summary>
     [SerializeField] Vector2 m_groundOffset = Vector2.down;
     /// <summary>接地判定をする Box のサイズ</summary>
     [SerializeField] Vector2 m_groundTriggerSize = Vector2.one;
+    /// <summary>空中でジャンプできる回数</summary>
+    [SerializeField] int m_maxMidAirJumpCount = 1;
     /// <summary>水平方向の入力</summary>
     float m_h;
     /// <summary>垂直方向の入力</summary>
     float m_v;
     Rigidbody2D m_rb = default;
     SpriteRenderer m_sprite = default;
+    /// <summary>ダッシュした時にカウントダウンされるタイマー</summary>
     float m_dashTimer;
+    /// <summary>空中ジャンプした回数のカウンター</summary>
+    int m_midAirJumpCount;
 
     void Start()
     {
@@ -50,11 +57,14 @@ public class PlayerMovementController2D : MonoBehaviour
         if (m_h > 0) m_sprite.flipX = false;
         else if (m_h < 0) m_sprite.flipX = true;
 
-        // 移動・ジャンプを制御する
+        // 移動・ジャンプを速度で制御する
         Vector3 velocity = m_rb.velocity;
 
         if (IsGrounded())
         {
+            if (m_midAirJumpCount > 0)
+                m_midAirJumpCount = 0;
+
             velocity.x = m_h * m_runSpeed; ;
 
             if (Input.GetButtonDown("Jump"))
@@ -62,7 +72,17 @@ public class PlayerMovementController2D : MonoBehaviour
                 velocity.y = m_jumpPower;
             }
         }
+        else
+        {
+            // 空中ジャンプ
+            if (m_midAirJumpCount < m_maxMidAirJumpCount && Input.GetButtonDown("Jump"))
+            {
+                m_midAirJumpCount++;
+                velocity.y = m_jumpPowerMidAir;
+            }
+        }
 
+        // 速度を決定する
         m_rb.velocity = velocity;
 
         if (Input.GetButtonDown("Dash"))
