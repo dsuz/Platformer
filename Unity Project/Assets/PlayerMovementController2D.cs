@@ -29,16 +29,25 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] Vector2 m_groundTriggerSize = Vector2.one;
     /// <summary>空中でジャンプできる回数</summary>
     [SerializeField] int m_maxMidAirJumpCount = 1;
+    /// <summary>梯子を登る速さ</summary>
+    [SerializeField] float m_climbUpLadderSpeed = 4f;
+    /// <summary>梯子を降りる速さ</summary>
+    [SerializeField] float m_climbDownLadderSpeed = 10f;
     /// <summary>水平方向の入力</summary>
-    float m_h;
+    float m_h = 0f;
     /// <summary>垂直方向の入力</summary>
-    float m_v;
+    float m_v = 0f;
     Rigidbody2D m_rb = default;
     SpriteRenderer m_sprite = default;
     /// <summary>ダッシュした時にカウントダウンされるタイマー</summary>
-    float m_dashTimer;
+    float m_dashTimer = 0f;
     /// <summary>空中ジャンプした回数のカウンター</summary>
-    int m_midAirJumpCount;
+    int m_midAirJumpCount = 0;
+    /// <summary>梯子と重なってるフラグ</summary>
+    bool m_isOnLadder = false;
+    /// <summary>梯子に捉まってるフラグ</summary>
+    bool m_isClimbingLadder = false;
+    Transform m_targetLadder = default;
 
     void Start()
     {
@@ -57,33 +66,63 @@ public class PlayerMovementController2D : MonoBehaviour
         if (m_h > 0) m_sprite.flipX = false;
         else if (m_h < 0) m_sprite.flipX = true;
 
-        // 移動・ジャンプを速度で制御する
-        Vector3 velocity = m_rb.velocity;
-
-        if (IsGrounded())
+        // 梯子につかまる
+        if (m_isOnLadder)
         {
-            if (m_midAirJumpCount > 0)
-                m_midAirJumpCount = 0;
-
-            velocity.x = m_h * m_runSpeed; ;
-
-            if (Input.GetButtonDown("Jump"))
+            if (m_v != 0)
             {
-                velocity.y = m_jumpPower;
+                CatchLadder(true);
+            }
+        }
+
+        if (m_isClimbingLadder)
+        {
+            if (m_v > 0)
+            {
+                m_rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                this.transform.Translate(0f, m_v * m_climbUpLadderSpeed * Time.deltaTime, 0f);
+            }
+            else if (m_v < 0)
+            {
+                m_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+                m_rb.velocity = m_climbDownLadderSpeed * Vector2.down;
+            }
+            else
+            {
+                m_rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                this.transform.Translate(m_h * m_runSpeed * Time.deltaTime, 0, 0f);
             }
         }
         else
         {
-            // 空中ジャンプ
-            if (m_midAirJumpCount < m_maxMidAirJumpCount && Input.GetButtonDown("Jump"))
-            {
-                m_midAirJumpCount++;
-                velocity.y = m_jumpPowerMidAir;
-            }
-        }
+            // 移動・ジャンプを速度で制御する
+            Vector3 velocity = m_rb.velocity;
 
-        // 速度を決定する
-        m_rb.velocity = velocity;
+            if (IsGrounded())
+            {
+                if (m_midAirJumpCount > 0)
+                    m_midAirJumpCount = 0;
+
+                velocity.x = m_h * m_runSpeed; ;
+
+                if (Input.GetButtonDown("Jump"))
+                {
+                    velocity.y = m_jumpPower;
+                }
+            }
+            else
+            {
+                // 空中ジャンプ
+                if (m_midAirJumpCount < m_maxMidAirJumpCount && Input.GetButtonDown("Jump"))
+                {
+                    m_midAirJumpCount++;
+                    velocity.y = m_jumpPowerMidAir;
+                }
+            }
+
+            // 速度を決定する
+            m_rb.velocity = velocity;
+        }
 
         if (Input.GetButtonDown("Dash"))
         {
@@ -137,5 +176,48 @@ public class PlayerMovementController2D : MonoBehaviour
         // 接地判定するエリアを表示する
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(this.transform.position + (Vector3)m_groundOffset, m_groundTriggerSize);
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("LadderTag"))
+        {
+            m_isOnLadder = true;
+            m_targetLadder = collision.gameObject.transform;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("LadderTag"))
+        {
+            m_isOnLadder = false;
+            
+            // 梯子につかまっていた時は、梯子を離す
+            if (m_isClimbingLadder)
+            {
+                CatchLadder(false);
+            }
+
+            m_targetLadder = null;
+        }
+    }
+
+    /// <summary>
+    /// 梯子につかまる・梯子を離す時に呼ぶ
+    /// </summary>
+    /// <param name="isCatch">つかまる時は true, 離す時は false</param>
+    void CatchLadder(bool isCatch)
+    {
+        if (m_midAirJumpCount > 0)
+            m_midAirJumpCount = 0;
+
+        if (isCatch)
+        {
+            this.transform.position = new Vector3(m_targetLadder.position.x, this.transform.position.y, this.transform.position.z);
+        }
+
+        m_isClimbingLadder = isCatch;
+        m_rb.constraints = isCatch ? RigidbodyConstraints2D.FreezeAll : RigidbodyConstraints2D.FreezeRotation;
     }
 }
