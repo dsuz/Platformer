@@ -250,18 +250,12 @@ public class PlayerMovementController2D : MonoBehaviour
     /// </summary>
     void DropDownFloor()
     {
-        // 現在無効になっている床があったら有効に戻す（注: この処理は必要なくなったら削除すること）
-        //if (m_floorCollisionDisabled)
-        //{
-        //    Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>(), false);
-        //}
-
         // 自分が立っている床が一方通行の床だったら、自分との衝突判定を無効にする
         m_floorCollisionDisabled = m_floorStandingOn?.GetComponent<PlatformEffector2D>() ? m_floorStandingOn : null;
 
         if (m_floorCollisionDisabled)
         {
-            Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>());    // 注: コライダーが一つであることを前提としている
+            Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>());    // 注: プレイヤーのコライダーが一つであることを前提としている
         }
     }
 }
