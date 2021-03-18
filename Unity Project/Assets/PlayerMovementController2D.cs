@@ -45,9 +45,14 @@ public class PlayerMovementController2D : MonoBehaviour
     int m_midAirJumpCount = 0;
     /// <summary>梯子と重なってるフラグ</summary>
     bool m_isOnLadder = false;
-    /// <summary>梯子に捉まってるフラグ</summary>
+    /// <summary>梯子につかまってるフラグ</summary>
     bool m_isClimbingLadder = false;
+    /// <summary>現在つかまっている梯子</summary>
     Transform m_targetLadder = default;
+    /// <summary>現在立っている床のコライダー</summary>
+    Collider2D m_floorStandingOn = default;
+    /// <summary>飛び降りるためにこのオブジェクトとの当たり判定を無効にしたコライダー</summary>
+    Collider2D m_floorCollisionDisabled = default;
 
     void Start()
     {
@@ -107,7 +112,14 @@ public class PlayerMovementController2D : MonoBehaviour
 
                 if (Input.GetButtonDown("Jump"))
                 {
-                    velocity.y = m_jumpPower;
+                    if (m_v < 0)
+                    {
+                        DropDownFloor();
+                    }
+                    else
+                    {
+                        velocity.y = m_jumpPower;
+                    }
                 }
             }
             else
@@ -132,6 +144,16 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void FixedUpdate()
     {
+        // 衝突判定を無効にして飛び降りた床の判定を戻す
+        if (m_floorCollisionDisabled)
+        {
+            if (!IsGrounded())
+            {
+                Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>(), false);
+                m_floorCollisionDisabled = null;
+            }
+        }
+
         // 空中制御処理
         if ((m_h > 0 && m_rb.velocity.x < m_runSpeed) || (m_h < 0 && -1 * m_runSpeed < m_rb.velocity.x))
         {
@@ -155,7 +177,7 @@ public class PlayerMovementController2D : MonoBehaviour
         {
             m_dashTimer -= Time.deltaTime;
             m_rb.velocity = velocity;
-            yield return new WaitForEndOfFrame();            
+            yield return new WaitForEndOfFrame();
         }
 
         m_rb.velocity = Vector2.zero;
@@ -168,7 +190,8 @@ public class PlayerMovementController2D : MonoBehaviour
     /// <returns></returns>
     bool IsGrounded()
     {
-        return Physics2D.OverlapBox((Vector2)this.transform.position + m_groundOffset, m_groundTriggerSize, 0, m_groundLayer);
+        m_floorStandingOn = Physics2D.OverlapBox((Vector2)this.transform.position + m_groundOffset, m_groundTriggerSize, 0, m_groundLayer);
+        return m_floorStandingOn;
     }
 
     void OnDrawGizmosSelected()
@@ -192,7 +215,7 @@ public class PlayerMovementController2D : MonoBehaviour
         if (collision.gameObject.CompareTag("LadderTag"))
         {
             m_isOnLadder = false;
-            
+
             // 梯子につかまっていた時は、梯子を離す
             if (m_isClimbingLadder)
             {
@@ -219,5 +242,26 @@ public class PlayerMovementController2D : MonoBehaviour
 
         m_isClimbingLadder = isCatch;
         m_rb.constraints = isCatch ? RigidbodyConstraints2D.FreezeAll : RigidbodyConstraints2D.FreezeRotation;
+    }
+
+    /// <summary>
+    /// 床を通り抜けて飛び降りる
+    /// PlatformEffector2D コンポーネントがアタッチされた床をすり抜けることができる
+    /// </summary>
+    void DropDownFloor()
+    {
+        // 現在無効になっている床があったら有効に戻す（注: この処理は必要なくなったら削除すること）
+        //if (m_floorCollisionDisabled)
+        //{
+        //    Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>(), false);
+        //}
+
+        // 自分が立っている床が一方通行の床だったら、自分との衝突判定を無効にする
+        m_floorCollisionDisabled = m_floorStandingOn?.GetComponent<PlatformEffector2D>() ? m_floorStandingOn : null;
+
+        if (m_floorCollisionDisabled)
+        {
+            Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>());    // 注: コライダーが一つであることを前提としている
+        }
     }
 }
