@@ -38,6 +38,7 @@ public class PlayerMovementController2D : MonoBehaviour
     /// <summary>垂直方向の入力</summary>
     float m_v = 0f;
     Rigidbody2D m_rb = default;
+    Animator m_anim = default;
     SpriteRenderer m_sprite = default;
     /// <summary>ダッシュした時にカウントダウンされるタイマー</summary>
     float m_dashTimer = 0f;
@@ -58,34 +59,34 @@ public class PlayerMovementController2D : MonoBehaviour
     {
         m_rb = GetComponent<Rigidbody2D>();
         m_sprite = GetComponent<SpriteRenderer>();
+        m_anim = GetComponent<Animator>();
     }
 
     void Update()
     {
         if (m_dashTimer > 0) return;    // ダッシュ中は入力を受け付けない
 
-        m_h = Input.GetAxisRaw("Horizontal");
+        m_h = Input.GetAxisRaw("Horizontal");   // GetAxisRaw が中間値を受け取っているがこれはバグではないかと思う
         m_v = Input.GetAxisRaw("Vertical");
 
         // スプライトの向きを制御する
         if (m_h > 0) m_sprite.flipX = false;
         else if (m_h < 0) m_sprite.flipX = true;
 
-        // 梯子につかまる
-        if (m_isOnLadder)
+        // 梯子に重なった状態で上下を入力すると梯子につかまる
+        if (m_isOnLadder && m_v != 0)
         {
-            if (m_v != 0)
-            {
-                CatchLadder(true);
-            }
+            CatchLadder(true);
         }
 
         if (m_isClimbingLadder)
         {
             if (m_v > 0)
             {
-                m_rb.constraints = RigidbodyConstraints2D.FreezeAll;
-                this.transform.Translate(0f, m_v * m_climbUpLadderSpeed * Time.deltaTime, 0f);
+                //m_rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                //this.transform.Translate(0f, m_v * m_climbUpLadderSpeed * Time.deltaTime, 0f);
+                m_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+                m_rb.velocity = m_climbUpLadderSpeed * Vector2.up;
             }
             else if (m_v < 0)
             {
@@ -158,6 +159,17 @@ public class PlayerMovementController2D : MonoBehaviour
         if ((m_h > 0 && m_rb.velocity.x < m_runSpeed) || (m_h < 0 && -1 * m_runSpeed < m_rb.velocity.x))
         {
             m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
+        }
+    }
+
+    void LateUpdate()
+    {
+        if (m_anim)
+        {
+            m_anim.SetFloat("SpeedX", Mathf.Abs(m_rb.velocity.x));
+            m_anim.SetFloat("SpeedY", m_rb.velocity.y);
+            m_anim.SetBool("IsGrounded", IsGrounded());
+            m_anim.SetBool("IsClimbingLadder", m_isClimbingLadder);
         }
     }
 
