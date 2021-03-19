@@ -1089,7 +1089,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6298193}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -379.964}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -739.965}
 --- !u!1 &587617603
 GameObject:
   m_ObjectHideFlags: 0
@@ -1708,6 +1708,8 @@ MonoBehaviour:
   m_maxMidAirJumpCount: 1
   m_climbUpLadderSpeed: 4
   m_climbDownLadderSpeed: 10
+  m_colliderOffsetOnCrouch: {x: 0, y: -0.345}
+  m_colliderSizeOnCrouch: {x: 0.26, y: 0.45}
 --- !u!50 &811224680
 Rigidbody2D:
   serializedVersion: 4
@@ -1742,7 +1744,7 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.0050094128, y: -0.12}
+  m_Offset: {x: 0, y: -0.12}
   m_Size: {x: 0.26, y: 0.9}
   m_Direction: 0
 --- !u!95 &811224682
@@ -3344,6 +3346,8 @@ MonoBehaviour:
   m_maxMidAirJumpCount: 1
   m_climbUpLadderSpeed: 4
   m_climbDownLadderSpeed: 10
+  m_colliderOffsetOnCrouch: {x: 1, y: 1}
+  m_colliderSizeOnCrouch: {x: 1, y: 1}
 --- !u!1 &2094753642
 GameObject:
   m_ObjectHideFlags: 0

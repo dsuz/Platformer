@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// プレイヤーの動きを制御する。
+/// プレイヤーの動きを制御する。衝突判定は一つの Capsule Collider 2D で行うことを前提としている。
 /// 接地判定の形は Box でやっている。
 /// </summary>
-[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer))]
+[RequireComponent(typeof(Rigidbody2D), typeof(SpriteRenderer), typeof(CapsuleCollider2D))]
 public class PlayerMovementController2D : MonoBehaviour
 {
     /// <summary>地上で操作された時の動く速さ</summary>
@@ -33,13 +33,22 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] float m_climbUpLadderSpeed = 4f;
     /// <summary>梯子を降りる速さ</summary>
     [SerializeField] float m_climbDownLadderSpeed = 10f;
+    /// <summary>しゃがんだ時の Capsule Collider 2D のオフセット値</summary>
+    [SerializeField] Vector2 m_colliderOffsetOnCrouch = Vector2.one;
+    /// <summary>しゃがんだ時の Capsule Collider 2D のサイズ値</summary>
+    [SerializeField] Vector2 m_colliderSizeOnCrouch = Vector2.one;
+    /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
+    Rigidbody2D m_rb = default;
+    /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
+    Animator m_anim = default;
+    /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
+    SpriteRenderer m_sprite = default;
+    /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
+    CapsuleCollider2D m_collider = default;
     /// <summary>水平方向の入力</summary>
     float m_h = 0f;
     /// <summary>垂直方向の入力</summary>
     float m_v = 0f;
-    Rigidbody2D m_rb = default;
-    Animator m_anim = default;
-    SpriteRenderer m_sprite = default;
     /// <summary>ダッシュした時にカウントダウンされるタイマー</summary>
     float m_dashTimer = 0f;
     /// <summary>空中ジャンプした回数のカウンター</summary>
@@ -52,12 +61,17 @@ public class PlayerMovementController2D : MonoBehaviour
     Collider2D m_floorStandingOn = default;
     /// <summary>飛び降りるためにこのオブジェクトとの当たり判定を（一時的に）無効にした床</summary>
     IgnoreCollisionController2D m_floorCollisionDisabled = default;
+    /// <summary>しゃがむ前の Capsule Collider 2D のオフセット値</summary>
+    Vector2 m_colliderOffsetOnStanding = default;
+    /// <summary>しゃがむ前の Capsule Collider 2D のサイズ値</summary>
+    Vector2 m_colliderSizeOnStanding = default;
 
     void Start()
     {
         m_rb = GetComponent<Rigidbody2D>();
         m_sprite = GetComponent<SpriteRenderer>();
         m_anim = GetComponent<Animator>();
+        m_collider = GetComponent<CapsuleCollider2D>();
     }
 
     void Update()
@@ -80,6 +94,8 @@ public class PlayerMovementController2D : MonoBehaviour
         // 梯子上を移動する
         if (m_isClimbingLadder)
         {
+            Crouch(false);
+
             if (m_v > 0)
             {
                 m_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -106,17 +122,32 @@ public class PlayerMovementController2D : MonoBehaviour
                 if (m_midAirJumpCount > 0)
                     m_midAirJumpCount = 0;
 
-                velocity.x = m_h * m_runSpeed; ;
-
-                if (Input.GetButtonDown("Jump"))
+                if (m_v < 0)
                 {
-                    if (m_v < 0)
+                    velocity.x = 0;
+
+                    if (Input.GetButtonDown("Jump"))    // 下を押しながらジャンプ
                     {
-                        DropDownFloor();
+                        Crouch(false);
+
+                        if (!DropDownFloor())   // すり抜けられない床の上だった場合はジャンプする
+                        {
+                            velocity.y = m_jumpPower;   // ジャンプ
+                        }
                     }
                     else
                     {
-                        velocity.y = m_jumpPower;
+                        Crouch(true);
+                    }
+                }
+                else
+                {
+                    Crouch(false);
+                    velocity.x = m_h * m_runSpeed;
+
+                    if (Input.GetButtonDown("Jump"))
+                    {
+                        velocity.y = m_jumpPower;   // ジャンプ
                     }
                 }
             }
@@ -142,18 +173,20 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void FixedUpdate()
     {
+        bool isGrounded = IsGrounded();
+
         // 衝突判定を無効にした床を通り抜けたら、無効にした判定を戻す
         if (m_floorCollisionDisabled)
         {
-            if (!IsGrounded())
+            if (!isGrounded)
             {
-                m_floorCollisionDisabled.IgnoreCollision(GetComponent<Collider2D>(), false);
+                m_floorCollisionDisabled.IgnoreCollision(m_collider, false);
                 m_floorCollisionDisabled = null;
             }
         }
 
         // 空中制御処理
-        if ((m_h > 0 && m_rb.velocity.x < m_runSpeed) || (m_h < 0 && -1 * m_runSpeed < m_rb.velocity.x))
+        if (!isGrounded && ((m_h > 0 && m_rb.velocity.x < m_runSpeed) || (m_h < 0 && -1 * m_runSpeed < m_rb.velocity.x)))
         {
             m_rb.AddForce(m_h * m_movePowerInTheAir * Vector2.right);
         }
@@ -167,6 +200,29 @@ public class PlayerMovementController2D : MonoBehaviour
             m_anim.SetFloat("SpeedY", m_rb.velocity.y);
             m_anim.SetBool("IsGrounded", IsGrounded());
             m_anim.SetBool("IsClimbingLadder", m_isClimbingLadder);
+            m_anim.SetBool("IsCrouching", m_collider.offset == m_colliderOffsetOnCrouch);
+        }
+    }
+
+    /// <summary>
+    /// しゃがみ・立ち上がりを制御する
+    /// </summary>
+    /// <param name="crouch">true の時しゃがむ、false の時立ち上がる</param>
+    void Crouch(bool crouch)
+    {
+        // 立っている時（飛び降り中を除く）にしゃがめと命令された場合
+        if (crouch && m_collider.offset != m_colliderOffsetOnCrouch && !m_floorCollisionDisabled)    
+        {
+            m_colliderOffsetOnStanding = m_collider.offset;
+            m_colliderSizeOnStanding = m_collider.size;
+            m_collider.offset = m_colliderOffsetOnCrouch;
+            m_collider.size = m_colliderSizeOnCrouch;
+        }
+        // しゃがんでいる時に立ち上がれと命令された場合
+        else if (!crouch && m_collider.offset == m_colliderOffsetOnCrouch)
+        {
+            m_collider.offset = m_colliderOffsetOnStanding;
+            m_collider.size = m_colliderSizeOnStanding;
         }
     }
 
@@ -246,7 +302,7 @@ public class PlayerMovementController2D : MonoBehaviour
             this.transform.position = new Vector3(m_targetLadder.position.x, this.transform.position.y, this.transform.position.z);
         }
 
-        m_targetLadder.GetComponent<IgnoreCollisionController2D>()?.IgnoreCollision(GetComponent<Collider2D>(), isCatch);
+        m_targetLadder.GetComponent<IgnoreCollisionController2D>()?.IgnoreCollision(m_collider, isCatch);
         m_isClimbingLadder = isCatch;
         m_rb.constraints = isCatch ? RigidbodyConstraints2D.FreezeAll : RigidbodyConstraints2D.FreezeRotation;
     }
@@ -255,10 +311,12 @@ public class PlayerMovementController2D : MonoBehaviour
     /// 床を通り抜けて飛び降りる
     /// IgnoreCollisionController2D コンポーネントがアタッチされた床をすり抜けることができる
     /// </summary>
-    void DropDownFloor()
+    /// <returns>足下の床が通り抜けられるものだった場合 true, 飛び降りることができない床だった場合 false を返す</returns>
+    bool DropDownFloor()
     {
         // 自分が立っている床がすり抜けられる床だったら、自分との衝突判定を無効にする
         m_floorCollisionDisabled = m_floorStandingOn?.GetComponent<IgnoreCollisionController2D>();
-        m_floorCollisionDisabled?.IgnoreCollision(GetComponent<Collider2D>(), true);   // 注: プレイヤーのコライダーが一つであることを前提としている
+        m_floorCollisionDisabled?.IgnoreCollision(m_collider, true);   // 注: プレイヤーのコライダーが一つであることを前提としている
+        return m_floorCollisionDisabled;
     }
 }
