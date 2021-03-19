@@ -2110,7 +2110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 378ff306160b26e409a2b3c2c7cce2e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_targetCollider:
+  m_targetColliders:
   - {fileID: 960103633}
 --- !u!1 &964036695
 GameObject:
@@ -2311,7 +2311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 378ff306160b26e409a2b3c2c7cce2e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_targetCollider:
+  m_targetColliders:
   - {fileID: 1085269903}
 --- !u!1 &1263241477
 GameObject:
@@ -3486,7 +3486,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 378ff306160b26e409a2b3c2c7cce2e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_targetCollider:
+  m_targetColliders:
   - {fileID: 2094753644}
 --- !u!1 &2136627207
 GameObject:
