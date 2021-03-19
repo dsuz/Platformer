@@ -44,11 +44,9 @@ public class PlayerMovementController2D : MonoBehaviour
     float m_dashTimer = 0f;
     /// <summary>空中ジャンプした回数のカウンター</summary>
     int m_midAirJumpCount = 0;
-    /// <summary>梯子と重なってるフラグ</summary>
-    bool m_isOnLadder = false;
     /// <summary>梯子につかまってるフラグ</summary>
     bool m_isClimbingLadder = false;
-    /// <summary>現在つかまっている梯子</summary>
+    /// <summary>現在重なっている、もしくはつかまっている梯子</summary>
     Transform m_targetLadder = default;
     /// <summary>現在立っている床のコライダー</summary>
     Collider2D m_floorStandingOn = default;
@@ -74,7 +72,7 @@ public class PlayerMovementController2D : MonoBehaviour
         else if (m_h < 0) m_sprite.flipX = true;
 
         // 梯子に重なった状態で上下を入力すると梯子につかまる
-        if (m_isOnLadder && m_v != 0)
+        if (m_targetLadder && m_v != 0)
         {
             CatchLadder(true);
         }
@@ -216,7 +214,6 @@ public class PlayerMovementController2D : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("LadderTag"))
         {
-            m_isOnLadder = true;
             m_targetLadder = collision.gameObject.transform;
         }
     }
@@ -225,8 +222,6 @@ public class PlayerMovementController2D : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("LadderTag"))
         {
-            m_isOnLadder = false;
-
             // 梯子につかまっていた時は、梯子を離す
             if (m_isClimbingLadder)
             {
