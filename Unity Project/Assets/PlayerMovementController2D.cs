@@ -52,8 +52,8 @@ public class PlayerMovementController2D : MonoBehaviour
     Transform m_targetLadder = default;
     /// <summary>現在立っている床のコライダー</summary>
     Collider2D m_floorStandingOn = default;
-    /// <summary>飛び降りるためにこのオブジェクトとの当たり判定を無効にしたコライダー</summary>
-    Collider2D m_floorCollisionDisabled = default;
+    /// <summary>飛び降りるためにこのオブジェクトとの当たり判定を（一時的に）無効にした床</summary>
+    IgnoreCollisionController2D m_floorCollisionDisabled = default;
 
     void Start()
     {
@@ -79,12 +79,11 @@ public class PlayerMovementController2D : MonoBehaviour
             CatchLadder(true);
         }
 
+        // 梯子上を移動する
         if (m_isClimbingLadder)
         {
             if (m_v > 0)
             {
-                //m_rb.constraints = RigidbodyConstraints2D.FreezeAll;
-                //this.transform.Translate(0f, m_v * m_climbUpLadderSpeed * Time.deltaTime, 0f);
                 m_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
                 m_rb.velocity = m_climbUpLadderSpeed * Vector2.up;
             }
@@ -145,12 +144,12 @@ public class PlayerMovementController2D : MonoBehaviour
 
     void FixedUpdate()
     {
-        // 衝突判定を無効にして飛び降りた床の判定を戻す
+        // 衝突判定を無効にした床を通り抜けたら、無効にした判定を戻す
         if (m_floorCollisionDisabled)
         {
             if (!IsGrounded())
             {
-                Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>(), false);
+                m_floorCollisionDisabled.IgnoreCollision(GetComponent<Collider2D>(), false);
                 m_floorCollisionDisabled = null;
             }
         }
@@ -252,22 +251,19 @@ public class PlayerMovementController2D : MonoBehaviour
             this.transform.position = new Vector3(m_targetLadder.position.x, this.transform.position.y, this.transform.position.z);
         }
 
+        m_targetLadder.GetComponent<IgnoreCollisionController2D>()?.IgnoreCollision(GetComponent<Collider2D>(), isCatch);
         m_isClimbingLadder = isCatch;
         m_rb.constraints = isCatch ? RigidbodyConstraints2D.FreezeAll : RigidbodyConstraints2D.FreezeRotation;
     }
 
     /// <summary>
     /// 床を通り抜けて飛び降りる
-    /// PlatformEffector2D コンポーネントがアタッチされた床をすり抜けることができる
+    /// IgnoreCollisionController2D コンポーネントがアタッチされた床をすり抜けることができる
     /// </summary>
     void DropDownFloor()
     {
-        // 自分が立っている床が一方通行の床だったら、自分との衝突判定を無効にする
-        m_floorCollisionDisabled = m_floorStandingOn?.GetComponent<PlatformEffector2D>() ? m_floorStandingOn : null;
-
-        if (m_floorCollisionDisabled)
-        {
-            Physics2D.IgnoreCollision(m_floorCollisionDisabled, GetComponent<Collider2D>());    // 注: プレイヤーのコライダーが一つであることを前提としている
-        }
+        // 自分が立っている床がすり抜けられる床だったら、自分との衝突判定を無効にする
+        m_floorCollisionDisabled = m_floorStandingOn?.GetComponent<IgnoreCollisionController2D>();
+        m_floorCollisionDisabled?.IgnoreCollision(GetComponent<Collider2D>(), true);   // 注: プレイヤーのコライダーが一つであることを前提としている
     }
 }
