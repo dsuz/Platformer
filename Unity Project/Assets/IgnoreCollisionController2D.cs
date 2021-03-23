@@ -1,21 +1,21 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ƒhƒƒbƒvƒ_ƒEƒ“‚ğ§Œä‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒgBƒhƒƒbƒvƒ_ƒEƒ“‚³‚¹‚½‚¢°‚È‚Ç‚ÉƒAƒ^ƒbƒ`‚·‚éB
-/// ƒhƒƒbƒvƒ_ƒEƒ“‚Íu“Á’è‚ÌƒRƒ‰ƒCƒ_[‚Æ‚±‚ÌƒIƒuƒWƒFƒNƒg‚Ìw’è‚³‚ê‚½ƒRƒ‰ƒCƒ_[‚Æ‚ÌÕ“Ë‚ğ–³Œø‚É‚·‚év‚±‚Æ‚ÅÀŒ»‚·‚éB
+/// ãƒ‰ãƒ­ãƒƒãƒ—ãƒ€ã‚¦ãƒ³ã‚’åˆ¶å¾¡ã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã€‚ãƒ‰ãƒ­ãƒƒãƒ—ãƒ€ã‚¦ãƒ³ã•ã›ãŸã„åºŠãªã©ã«ã‚¢ã‚¿ãƒƒãƒã™ã‚‹ã“ã¨ã‚’æƒ³å®šã—ã¦ã„ã‚‹ã€‚
+/// ãƒ‰ãƒ­ãƒƒãƒ—ãƒ€ã‚¦ãƒ³ã¯ã€Œç‰¹å®šã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã¨ã“ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æŒ‡å®šã•ã‚ŒãŸã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã¨ã®è¡çªã‚’ç„¡åŠ¹ã«ã™ã‚‹ã€ã“ã¨ã§å®Ÿç¾ã™ã‚‹ã€‚
 /// </summary>
 public class IgnoreCollisionController2D : MonoBehaviour
 {
-    /// <summary>Õ“Ë‚ğ–³Œø‚É‚·‚éƒRƒ‰ƒCƒ_[</summary>
+    /// <summary>è¡çªã‚’ç„¡åŠ¹ã«ã™ã‚‹ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼</summary>
     [SerializeField] Collider2D[] m_targetColliders = default;
 
     /// <summary>
-    /// m_targetColliders ‚ğ–³Œø‚É‚·‚é
+    /// m_targetColliders ã‚’ç„¡åŠ¹ã«ã™ã‚‹
     /// </summary>
-    /// <param name="collider2D">Õ“Ë‚ğ–³Œø‚É‚·‚é‘ÎÛ‚ÌƒRƒ‰ƒCƒ_[</param>
-    /// <param name="ignore">–³Œø‚É‚·‚é trueA—LŒø‚É–ß‚· false ‚ğw’è‚·‚é</param>
+    /// <param name="collider2D">è¡çªã‚’ç„¡åŠ¹ã«ã™ã‚‹å¯¾è±¡ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼</param>
+    /// <param name="ignore">ç„¡åŠ¹ã«ã™ã‚‹æ™‚ trueã€æœ‰åŠ¹ã«æˆ»ã™æ™‚ false ã‚’æŒ‡å®šã™ã‚‹</param>
     public void IgnoreCollision(Collider2D collider2D, bool ignore)
     {
         foreach (var c in m_targetColliders)
