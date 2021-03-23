@@ -78,8 +78,9 @@ public class PlayerMovementController2D : MonoBehaviour
     {
         if (m_dashTimer > 0) return;    // ダッシュ中は入力を受け付けない
 
-        m_h = Input.GetAxisRaw("Horizontal");   // GetAxisRaw が中間値を受け取っているがこれはバグではないかと思う
         m_v = Input.GetAxisRaw("Vertical");
+        m_h = Input.GetAxisRaw("Horizontal");
+        m_h = Mathf.Round(m_h); // 入力をデジタル化する
 
         // スプライトの向きを制御する
         if (m_h > 0) m_sprite.flipX = false;
