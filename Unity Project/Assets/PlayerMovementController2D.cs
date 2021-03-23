@@ -82,9 +82,7 @@ public class PlayerMovementController2D : MonoBehaviour
         m_h = Input.GetAxisRaw("Horizontal");
         m_h = Mathf.Round(m_h); // 入力をデジタル化する
 
-        // スプライトの向きを制御する
-        if (m_h > 0) m_sprite.flipX = false;
-        else if (m_h < 0) m_sprite.flipX = true;
+        FlipSprite();
 
         // 梯子に重なった状態で上下を入力すると梯子につかまる
         if (m_targetLadder && m_v != 0)
@@ -319,5 +317,20 @@ public class PlayerMovementController2D : MonoBehaviour
         m_floorCollisionDisabled = m_floorStandingOn?.GetComponent<IgnoreCollisionController2D>();
         m_floorCollisionDisabled?.IgnoreCollision(m_collider, true);   // 注: プレイヤーのコライダーが一つであることを前提としている
         return m_floorCollisionDisabled;
+    }
+
+    /// <summary>
+    /// キャラクター（スプライト）の左右の向きを制御する。Scale - X が正の値の時、キャラクターが右を向いていることを前提とする。
+    /// </summary>
+    void FlipSprite()
+    {
+        // 入力方向とキャラクターの向きが逆の時
+        if (m_h * this.transform.localScale.x < 0)
+        {
+            // Scale - X に -1 をかけて反転させる
+            Vector3 scale = this.transform.localScale;
+            scale.x = -1 * scale.x;
+            this.transform.localScale = scale;
+        }
     }
 }
