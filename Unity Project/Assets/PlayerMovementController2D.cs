@@ -235,7 +235,7 @@ public class PlayerMovementController2D : MonoBehaviour
         m_dashTimer = m_dashTime;
         float savedGravityScale = m_rb.gravityScale;
         m_rb.gravityScale = 0f;
-        Vector2 velocity = m_sprite.flipX ? -1 * m_dashSpeed * Vector2.right : m_dashSpeed * Vector2.right;
+        Vector2 velocity = this.transform.localScale.x < 0 ? -1 * m_dashSpeed * Vector2.right : m_dashSpeed * Vector2.right;
 
         while (m_dashTimer > 0)
         {
