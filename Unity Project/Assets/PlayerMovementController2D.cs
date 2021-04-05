@@ -65,6 +65,8 @@ public class PlayerMovementController2D : MonoBehaviour
     Vector2 m_colliderOffsetOnStanding = default;
     /// <summary>しゃがむ前の Capsule Collider 2D のサイズ値</summary>
     Vector2 m_colliderSizeOnStanding = default;
+    /// <summary>壁にはりついているフラグ</summary>
+    bool m_isStickingToWall = false;
 
     void Start()
     {
@@ -77,6 +79,22 @@ public class PlayerMovementController2D : MonoBehaviour
     void Update()
     {
         if (m_dashTimer > 0) return;    // ダッシュ中は入力を受け付けない
+
+        if (m_isStickingToWall)
+        {
+            if (Input.GetButtonDown("Jump"))
+            {
+                Vector3 velocity = Vector3.zero;
+                velocity.y += m_jumpPower;
+                velocity.x += m_runSpeed * (this.transform.localScale.x < 0 ? 1 : -1);
+                StickToWall(false);
+                m_rb.velocity = velocity;
+                Debug.Log(m_rb.velocity.ToString());
+                this.transform.localScale = new Vector3(this.transform.localScale.x * -1, this.transform.localScale.y, this.transform.localScale.z);
+            }
+
+            return;
+        }    
 
         m_v = Input.GetAxisRaw("Vertical");
         m_h = Input.GetAxisRaw("Horizontal");
@@ -285,6 +303,32 @@ public class PlayerMovementController2D : MonoBehaviour
 
             m_targetLadder = null;
         }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag.Equals("StickyTag"))
+        {
+            StickToWall(true);
+        }
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag.Equals("StickyTag"))
+        {
+            StickToWall(false);
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="flag"></param>
+    void StickToWall(bool flag)
+    {
+        m_isStickingToWall = flag;
+        m_rb.constraints = m_isStickingToWall ? RigidbodyConstraints2D.FreezeAll : RigidbodyConstraints2D.FreezeRotation;
     }
 
     /// <summary>
