@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+// using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -37,6 +37,12 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] Vector2 m_colliderOffsetOnCrouch = Vector2.one;
     /// <summary>しゃがんだ時の Capsule Collider 2D のサイズ値</summary>
     [SerializeField] Vector2 m_colliderSizeOnCrouch = Vector2.one;
+    /// <summary>貼りつける壁のレイヤー</summary>
+    [SerializeField] LayerMask m_stickyWallLayer = default;
+    /// <summary>壁に貼りつく当たり判定のオフセット</summary>
+    [SerializeField] Vector2 m_stickyAreaOffset = Vector2.right * 0.3f;
+    /// <summary>壁に貼りつく当たり判定のサイズ</summary>
+    [SerializeField] Vector2 m_stickyAreaSize = Vector2.one * 0.1f;
     /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
     Rigidbody2D m_rb = default;
     /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
@@ -67,7 +73,6 @@ public class PlayerMovementController2D : MonoBehaviour
     Vector2 m_colliderSizeOnStanding = default;
     /// <summary>壁にはりついているフラグ</summary>
     bool m_isStickingToWall = false;
-    [SerializeField] LayerMask m_stickyWallLayer = default;
 
     void Start()
     {
@@ -99,7 +104,7 @@ public class PlayerMovementController2D : MonoBehaviour
         else if (!IsGrounded())
         {
             // 壁に貼りつく
-            bool isTrouchingStickyWall = Physics2D.OverlapBox(this.transform.position + Vector3.right * 0.3f * (this.transform.localScale.x > 0 ? 1 : -1), Vector2.one * 0.1f, 0, m_stickyWallLayer);
+            bool isTrouchingStickyWall = Physics2D.OverlapBox(this.transform.position + (Vector3) m_stickyAreaOffset * (this.transform.localScale.x > 0 ? 1 : -1), m_stickyAreaSize, 0, m_stickyWallLayer);
             StickToWall(isTrouchingStickyWall);
         }
 
@@ -290,8 +295,8 @@ public class PlayerMovementController2D : MonoBehaviour
         Gizmos.DrawWireCube(this.transform.position + (Vector3)m_groundOffset, m_groundTriggerSize);
 
         // 壁に貼りつくエリアを表示する
-        Gizmos.color = Color.gray;
-        Gizmos.DrawWireCube(this.transform.position + Vector3.right * 0.3f * (this.transform.localScale.x > 0 ? 1 : -1), Vector2.one * 0.1f);
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireCube(this.transform.position + (Vector3)m_stickyAreaOffset * (this.transform.localScale.x > 0 ? 1 : -1), m_stickyAreaSize);
     }
 
     void OnTriggerEnter2D(Collider2D collision)
@@ -315,22 +320,6 @@ public class PlayerMovementController2D : MonoBehaviour
             m_targetLadder = null;
         }
     }
-
-    //void OnCollisionEnter2D(Collision2D collision)
-    //{
-    //    if (collision.gameObject.tag.Equals("StickyTag"))
-    //    {
-    //        StickToWall(true);
-    //    }
-    //}
-
-    //void OnCollisionExit2D(Collision2D collision)
-    //{
-    //    if (collision.gameObject.tag.Equals("StickyTag"))
-    //    {
-    //        StickToWall(false);
-    //    }
-    //}
 
     /// <summary>
     /// 壁に貼りつく
