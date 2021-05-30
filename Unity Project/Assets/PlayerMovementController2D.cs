@@ -67,6 +67,7 @@ public class PlayerMovementController2D : MonoBehaviour
     Vector2 m_colliderSizeOnStanding = default;
     /// <summary>壁にはりついているフラグ</summary>
     bool m_isStickingToWall = false;
+    [SerializeField] LayerMask m_stickyWallLayer = default;
 
     void Start()
     {
@@ -80,21 +81,27 @@ public class PlayerMovementController2D : MonoBehaviour
     {
         if (m_dashTimer > 0) return;    // ダッシュ中は入力を受け付けない
 
+        // 壁に貼りついている時にジャンプを押されたら、背中の方向の斜め上に飛ぶ
         if (m_isStickingToWall)
         {
             if (Input.GetButtonDown("Jump"))
             {
+                this.transform.localScale = new Vector3(this.transform.localScale.x * -1, this.transform.localScale.y, this.transform.localScale.z);
+                StickToWall(false);
+                //FlipSprite();
                 Vector3 velocity = Vector3.zero;
                 velocity.y += m_jumpPower;
-                velocity.x += m_runSpeed * (this.transform.localScale.x < 0 ? 1 : -1);
-                StickToWall(false);
+                velocity.x += m_runSpeed * (this.transform.localScale.x < 0 ? -1 : 1);
                 m_rb.velocity = velocity;
                 Debug.Log(m_rb.velocity.ToString());
-                this.transform.localScale = new Vector3(this.transform.localScale.x * -1, this.transform.localScale.y, this.transform.localScale.z);
             }
-
-            return;
-        }    
+        }
+        else if (!IsGrounded())
+        {
+            // 壁に貼りつく
+            bool isTrouchingStickyWall = Physics2D.OverlapBox(this.transform.position + Vector3.right * 0.3f * (this.transform.localScale.x > 0 ? 1 : -1), Vector2.one * 0.1f, 0, m_stickyWallLayer);
+            StickToWall(isTrouchingStickyWall);
+        }
 
         m_v = Input.GetAxisRaw("Vertical");
         m_h = Input.GetAxisRaw("Horizontal");
@@ -281,6 +288,10 @@ public class PlayerMovementController2D : MonoBehaviour
         // 接地判定するエリアを表示する
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(this.transform.position + (Vector3)m_groundOffset, m_groundTriggerSize);
+
+        // 壁に貼りつくエリアを表示する
+        Gizmos.color = Color.gray;
+        Gizmos.DrawWireCube(this.transform.position + Vector3.right * 0.3f * (this.transform.localScale.x > 0 ? 1 : -1), Vector2.one * 0.1f);
     }
 
     void OnTriggerEnter2D(Collider2D collision)
@@ -305,26 +316,26 @@ public class PlayerMovementController2D : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag.Equals("StickyTag"))
-        {
-            StickToWall(true);
-        }
-    }
+    //void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //    if (collision.gameObject.tag.Equals("StickyTag"))
+    //    {
+    //        StickToWall(true);
+    //    }
+    //}
 
-    void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.tag.Equals("StickyTag"))
-        {
-            StickToWall(false);
-        }
-    }
+    //void OnCollisionExit2D(Collision2D collision)
+    //{
+    //    if (collision.gameObject.tag.Equals("StickyTag"))
+    //    {
+    //        StickToWall(false);
+    //    }
+    //}
 
     /// <summary>
-    /// 
+    /// 壁に貼りつく
     /// </summary>
-    /// <param name="flag"></param>
+    /// <param name="flag">true で貼りつき、false で離れる</param>
     void StickToWall(bool flag)
     {
         m_isStickingToWall = flag;

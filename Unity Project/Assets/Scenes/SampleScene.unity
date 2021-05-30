@@ -307,7 +307,7 @@ GameObject:
   - component: {fileID: 54366465}
   - component: {fileID: 54366464}
   - component: {fileID: 54366463}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Wall (2)
   m_TagString: StickyTag
   m_Icon: {fileID: 0}
@@ -1513,7 +1513,7 @@ GameObject:
   - component: {fileID: 703441309}
   - component: {fileID: 703441308}
   - component: {fileID: 703441307}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Wall (1)
   m_TagString: StickyTag
   m_Icon: {fileID: 0}
@@ -1988,7 +1988,7 @@ MonoBehaviour:
   m_jumpPowerMidAir: 10
   m_groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 192
   m_groundOffset: {x: 0, y: -0.57}
   m_groundTriggerSize: {x: 0.21, y: 0.08}
   m_maxMidAirJumpCount: 1
@@ -1996,6 +1996,9 @@ MonoBehaviour:
   m_climbDownLadderSpeed: 10
   m_colliderOffsetOnCrouch: {x: 0, y: -0.345}
   m_colliderSizeOnCrouch: {x: 0.26, y: 0.45}
+  m_stickyWallLayer:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!50 &811224680
 Rigidbody2D:
   serializedVersion: 4
@@ -2063,7 +2066,7 @@ GameObject:
   - component: {fileID: 900664555}
   - component: {fileID: 900664554}
   - component: {fileID: 900664553}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3943,6 +3946,9 @@ MonoBehaviour:
   m_climbDownLadderSpeed: 10
   m_colliderOffsetOnCrouch: {x: 1, y: 1}
   m_colliderSizeOnCrouch: {x: 1, y: 1}
+  m_stickyWallLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &2094753642
 GameObject:
   m_ObjectHideFlags: 0
