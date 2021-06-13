@@ -230,6 +230,7 @@ public class PlayerMovementController2D : MonoBehaviour
             m_anim.SetBool("IsGrounded", IsGrounded());
             m_anim.SetBool("IsClimbingLadder", m_isClimbingLadder);
             m_anim.SetBool("IsCrouching", m_collider.offset == m_colliderOffsetOnCrouch);
+            m_anim.SetBool("IsStickToWall", m_isStickingToWall);
         }
     }
 
