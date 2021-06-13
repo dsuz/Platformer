@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+// using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -37,6 +37,12 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] Vector2 m_colliderOffsetOnCrouch = Vector2.one;
     /// <summary>しゃがんだ時の Capsule Collider 2D のサイズ値</summary>
     [SerializeField] Vector2 m_colliderSizeOnCrouch = Vector2.one;
+    /// <summary>貼りつける壁のレイヤー</summary>
+    [SerializeField] LayerMask m_stickyWallLayer = default;
+    /// <summary>壁に貼りつく当たり判定のオフセット</summary>
+    [SerializeField] Vector2 m_stickyAreaOffset = Vector2.right * 0.3f;
+    /// <summary>壁に貼りつく当たり判定のサイズ</summary>
+    [SerializeField] Vector2 m_stickyAreaSize = Vector2.one * 0.1f;
     /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
     Rigidbody2D m_rb = default;
     /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
@@ -65,6 +71,8 @@ public class PlayerMovementController2D : MonoBehaviour
     Vector2 m_colliderOffsetOnStanding = default;
     /// <summary>しゃがむ前の Capsule Collider 2D のサイズ値</summary>
     Vector2 m_colliderSizeOnStanding = default;
+    /// <summary>壁にはりついているフラグ</summary>
+    bool m_isStickingToWall = false;
 
     void Start()
     {
@@ -77,6 +85,28 @@ public class PlayerMovementController2D : MonoBehaviour
     void Update()
     {
         if (m_dashTimer > 0) return;    // ダッシュ中は入力を受け付けない
+
+        // 壁に貼りついている時にジャンプを押されたら、背中の方向の斜め上に飛ぶ
+        if (m_isStickingToWall)
+        {
+            if (Input.GetButtonDown("Jump"))
+            {
+                this.transform.localScale = new Vector3(this.transform.localScale.x * -1, this.transform.localScale.y, this.transform.localScale.z);
+                StickToWall(false);
+                //FlipSprite();
+                Vector3 velocity = Vector3.zero;
+                velocity.y += m_jumpPower;
+                velocity.x += m_runSpeed * (this.transform.localScale.x < 0 ? -1 : 1);
+                m_rb.velocity = velocity;
+                Debug.Log(m_rb.velocity.ToString());
+            }
+        }
+        else if (!IsGrounded())
+        {
+            // 壁に貼りつく
+            bool isTrouchingStickyWall = Physics2D.OverlapBox(this.transform.position + (Vector3) m_stickyAreaOffset * (this.transform.localScale.x > 0 ? 1 : -1), m_stickyAreaSize, 0, m_stickyWallLayer);
+            StickToWall(isTrouchingStickyWall);
+        }
 
         m_v = Input.GetAxisRaw("Vertical");
         m_h = Input.GetAxisRaw("Horizontal");
@@ -200,6 +230,7 @@ public class PlayerMovementController2D : MonoBehaviour
             m_anim.SetBool("IsGrounded", IsGrounded());
             m_anim.SetBool("IsClimbingLadder", m_isClimbingLadder);
             m_anim.SetBool("IsCrouching", m_collider.offset == m_colliderOffsetOnCrouch);
+            m_anim.SetBool("IsStickToWall", m_isStickingToWall);
         }
     }
 
@@ -263,6 +294,10 @@ public class PlayerMovementController2D : MonoBehaviour
         // 接地判定するエリアを表示する
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(this.transform.position + (Vector3)m_groundOffset, m_groundTriggerSize);
+
+        // 壁に貼りつくエリアを表示する
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireCube(this.transform.position + (Vector3)m_stickyAreaOffset * (this.transform.localScale.x > 0 ? 1 : -1), m_stickyAreaSize);
     }
 
     void OnTriggerEnter2D(Collider2D collision)
@@ -285,6 +320,16 @@ public class PlayerMovementController2D : MonoBehaviour
 
             m_targetLadder = null;
         }
+    }
+
+    /// <summary>
+    /// 壁に貼りつく
+    /// </summary>
+    /// <param name="flag">true で貼りつき、false で離れる</param>
+    void StickToWall(bool flag)
+    {
+        m_isStickingToWall = flag;
+        m_rb.constraints = m_isStickingToWall ? RigidbodyConstraints2D.FreezeAll : RigidbodyConstraints2D.FreezeRotation;
     }
 
     /// <summary>
