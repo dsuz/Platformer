@@ -43,6 +43,8 @@ public class PlayerMovementController2D : MonoBehaviour
     [SerializeField] Vector2 m_stickyAreaOffset = Vector2.right * 0.3f;
     /// <summary>壁に貼りつく当たり判定のサイズ</summary>
     [SerializeField] Vector2 m_stickyAreaSize = Vector2.one * 0.1f;
+    [SerializeField] Collider2D m_meleeAttackRange = default;
+    [SerializeField] float m_powerOfMeleeAttackHitInTheAir = 2f;
     /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
     Rigidbody2D m_rb = default;
     /// <summary>アタッチされたコンポーネントのキャッシュ</summary>
@@ -80,6 +82,7 @@ public class PlayerMovementController2D : MonoBehaviour
         m_sprite = GetComponent<SpriteRenderer>();
         m_anim = GetComponent<Animator>();
         m_collider = GetComponent<CapsuleCollider2D>();
+        m_meleeAttackRange?.gameObject.SetActive(false);
     }
 
     void Update()
@@ -309,6 +312,10 @@ public class PlayerMovementController2D : MonoBehaviour
         {
             m_targetLadder = collision.gameObject.transform;
         }
+        else if (collision.gameObject.CompareTag("Damagable"))
+        {
+            HitMeleeAttackHit();
+        }
     }
 
     void OnTriggerExit2D(Collider2D collision)
@@ -379,6 +386,39 @@ public class PlayerMovementController2D : MonoBehaviour
             Vector3 scale = this.transform.localScale;
             scale.x = -1 * scale.x;
             this.transform.localScale = scale;
+        }
+    }
+
+    /// <summary>
+    /// 近接攻撃の当たり判定を有効にする
+    /// アニメーションイベントから呼び出す
+    /// </summary>
+    void BeginMeleeAttack()
+    {
+        m_meleeAttackRange?.gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// 近接攻撃の当たり判定を無効にする
+    /// アニメーションイベントから呼び出す
+    /// </summary>
+    void EndMeleeAttack()
+    {
+        m_meleeAttackRange?.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// 近接攻撃が当たった時に呼び出される
+    /// </summary>
+    void HitMeleeAttackHit()
+    {
+        // ヒットしたら空中で動きを止め、もう一度ジャンプできるようにする
+        if (IsGrounded())
+        {
+            Vector2 velocity = m_rb.velocity;
+            velocity.y = m_powerOfMeleeAttackHitInTheAir;
+            m_rb.velocity = velocity;
+            m_midAirJumpCount = m_maxMidAirJumpCount - 1;
         }
     }
 }

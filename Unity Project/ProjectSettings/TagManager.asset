@@ -6,6 +6,7 @@ TagManager:
   tags:
   - LadderTag
   - StickyTag
+  - Damagable
   layers:
   - Default
   - TransparentFX
