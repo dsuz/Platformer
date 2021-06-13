@@ -196,6 +196,11 @@ public class PlayerMovementController2D : MonoBehaviour
         {
             StartCoroutine(Dash());
         }
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            m_anim.SetTrigger("MeleeAttack");
+        }
     }
 
     void FixedUpdate()
