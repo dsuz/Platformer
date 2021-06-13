@@ -93,12 +93,10 @@ public class PlayerMovementController2D : MonoBehaviour
             {
                 this.transform.localScale = new Vector3(this.transform.localScale.x * -1, this.transform.localScale.y, this.transform.localScale.z);
                 StickToWall(false);
-                //FlipSprite();
                 Vector3 velocity = Vector3.zero;
                 velocity.y += m_jumpPower;
                 velocity.x += m_runSpeed * (this.transform.localScale.x < 0 ? -1 : 1);
                 m_rb.velocity = velocity;
-                Debug.Log(m_rb.velocity.ToString());
             }
         }
         else if (!IsGrounded())
