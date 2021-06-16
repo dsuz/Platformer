@@ -413,7 +413,7 @@ public class PlayerMovementController2D : MonoBehaviour
     void HitMeleeAttackHit()
     {
         // ヒットしたら空中で動きを止め、もう一度ジャンプできるようにする
-        if (IsGrounded())
+        if (!IsGrounded())
         {
             Vector2 velocity = m_rb.velocity;
             velocity.y = m_powerOfMeleeAttackHitInTheAir;
